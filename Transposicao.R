@@ -21,11 +21,10 @@ for (metodo in metodos) {
   dev.off()
 }
 
-
-correlacionado <- cor(matrix)
-matrix
-# algorithm = c("Hartigan-Wong", "Lloyd", "Forgy","MacQueen")
-matrix2 <- spread(notas, avaliado, valor)
-matrix2[is.na(matrix2)] <- 0
-k <-  kmeans(matrix2, 2)
-plot(matrix2)
+metodos <- c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski")
+tM <- t(matrix)
+for (metodo in metodos) {
+  print(metodo)
+  print(dist(tM, method = metodo))
+}
+dM <- dist(tM)
