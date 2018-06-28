@@ -1,4 +1,3 @@
-
   normal <- function(x, media, desvio) {
     res <- pnorm(x, media, desvio)
     if((res < 0.05) | res >(0.95)){
@@ -61,6 +60,5 @@
     }
     return("NA")
   }
-  
-  h <- classificador(84)
+  h <- classificador(7)
   
