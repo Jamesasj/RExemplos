@@ -1,65 +1,69 @@
-# Estatistica no R - Aula 5 (Bayes)
-# Luis Anunciacao (Psicometria, PUC-Rio/University of Oregon)
-# luisfca@gmail.com www.anovabr.com
 # install.packages("tidyverse", dependencies = TRUE)
 # install.packages("BayesFactor")
+# install.packages("brms")
 
 library("tidyverse") #carregar pacote
-setwd("/home/james/Documents/RExemplos" )
+
+setwd("C:/PROJETOS/RExemplos/" )
 dados_brasil <- read.csv("Pesquisa-Brasil-e-Espanha-fusionado.csv")
+
+dados_brasil <- dados_brasil %>% 
+  mutate(bsq_soma = rowSums(.[45:78], na.rm = T)) %>% 
+  mutate(sexo = if_else(sexo == "1","Mulheres","Homens")) %>%
+  drop_na(sexo) %>% 
+  mutate(mulheres = if_else(sexo == "Mulheres",1,0)) %>%
+  mutate(eat_soma= rowSums(.[19:44], na.rm=T)) %>%
+  mutate(imc = peso_atual/(altura^2))
+
+
 #plotar
 vert_line <- dados_brasil %>% group_by(sexo) %>% summarise(mm = mean(bsq_soma))
-ggplot(dados_brasil, aes(x = bsq_soma, fill = sexo)) + geom_density(alpha = .5) +
+
+ggplot(dados_brasil, 
+       aes(x = bsq_soma, fill = sexo)) + 
+  geom_density(alpha = .5) +
   geom_vline(data=vert_line, aes(xintercept=mm, color=sexo))
 
 #Teste T
 #Ambiente R-Base
-t.test(bsq_soma ~ mulheres, alternative = c("two.sided"), data=dados_brasil)
-t.test(dados_brasil$bsq_soma[dados_brasil$mulheres==0],dados_brasil$bsq_soma[dados_brasil$mulheres==1])
+t.test(bsq_soma ~ mulheres, 
+       alternative = c("two.sided"), 
+       data=dados_brasil)
+
+t.test(dados_brasil$bsq_soma[dados_brasil$mulheres==0],
+       dados_brasil$bsq_soma[dados_brasil$mulheres==1])
+
 library("BayesFactor")
+
 dados_brasil <- data.frame(dados_brasil)
-
-
-ttestBF(formula = bsq_soma ~ mulheres, data = dados_brasil)
-12*10^6
-lm(bsq_soma ~ mulheres, data = dados_brasil) %>% summary()
-
 reg_bsq <- lmBF(bsq_soma ~ mulheres, data = dados_brasil) 
 chains <- posterior(reg_bsq, iterations = 10000)
-summary(chains)
+
 dados_brasil %>% 
-  summarise(mean(bsq_soma[mulheres==1])-mean(bsq_soma[mulheres==0]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  summarise(mean(bsq_soma[mulheres==1]) - mean(bsq_soma[mulheres==0]))
 
 samples <- ttestBF(x = dados_brasil$bsq_soma[dados_brasil$mulheres==0],
                   y = dados_brasil$bsq_soma[dados_brasil$mulheres==1], paired=FALSE,
                   posterior = TRUE, iterations = 1000)
+
 b_posterior <- data.frame(samples)
-ggplot(b_posterior, aes(x=mu)) + geom_density()
+
+ggplot(b_posterior, aes(x=mu)) + 
+  geom_density()
+
 plot(samples[,"mu"])
 
-#Regress?o linear
+bsq_regress <- dados_brasil %>% select(bsq_soma, mulheres, idade, 
+                                       faz_esporte, familia_esporte, eat_soma, imc) %>%
+  drop_na()
+
+#Regressão linear
 bsq_regress <- data.frame(bsq_regress)
 rl <- lm(data=bsq_regress, bsq_soma ~. ) 
 summary(rl)
+
 bf <- regressionBF(bsq_soma ~ ., data = bsq_regress)
-length(bf) #Quantasa compara??es ? poss?vel fazer (2^p)-1
+length(bf) #Quantas compara??es ? poss?vel fazer (2^p)-1
 bf
 plot(bf)
 
