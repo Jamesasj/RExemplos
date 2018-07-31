@@ -1,6 +1,8 @@
 # Estatistica no R - Aula 5 (Bayes)
 # Luis Anunciacao (Psicometria, PUC-Rio/University of Oregon)
 # luisfca@gmail.com www.anovabr.com
+# install.packages("tidyverse", dependencies = TRUE)
+# install.packages("BayesFactor")
 
 library("tidyverse") #carregar pacote
 setwd("/home/james/Documents/RExemplos" )
