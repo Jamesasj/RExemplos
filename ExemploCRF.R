@@ -1,40 +1,41 @@
 #install.packages('CRF')
 library(CRF)
+######################### Parametros ########################
+n.nodes <- 10 
+n.states <- 3 #numero de estados
 
-n.nodes <- 10
-n.states <- 2
-prior.prob <- c(0.8, 0.2)
-trans.prob <- matrix(0, nrow=2, ncol=2)
-trans.prob[1,] <- c(0.95, 0.05)
-trans.prob[2,] <- c(0.05, 0.95)
-
-adj <- matrix(0, n.nodes, n.nodes)
-for (i in 1:(n.nodes-1))
-{
+adj <- matrix(0, n.nodes, n.nodes) # pra que server essa matriz?
+for (i in 1:(n.nodes-1)){
   adj[i, i+1] <- 1
 }
 
-mc <- make.crf(adj, n.states)
+mc <- make.crf(adj, n.states) ################# criar objeto crf
 
-mc$node.pot[1,] <- prior.prob
-for (i in 1:mc$n.edges)
-{
+prior.prob <- c(0.8, 0.2) # probabilidade a priori
+mc$node.pot[1,] <- prior.prob # alterar potencial do No
+
+trans.prob <- matrix(0, nrow=2, ncol=2) # Probabilidade de transição entre os estados
+trans.prob[1,] <- c(0.95, 0.05)
+trans.prob[2,] <- c(0.05, 0.95)
+
+for (i in 1:mc$n.edges){
   mc$edge.pot[[i]] <- trans.prob
 }
 
-mc.samples <- sample.chain(mc, 10000)
-mc.samples[1:10, ]
+mc.samples <- sample.chain(mc, 10000) # Cadeia de markov
+mc.samples[1:10,]
 
-mrf.new <- make.crf(adj, n.states)
-mrf.new <- make.features(mrf.new)
-mrf.new <- make.par(mrf.new, 4)
+mrf.new.sf <- make.crf(adj, n.states)
+mrf.new.f <- make.features(mrf.new.sf)
+mrf.new <- make.par(mrf.new.f, 4) # criar uma estrutura para modelagem e treino, cria um vetor de parametros
+
 mrf.new$node.par[1,1,1] <- 1
-for (i in 1:mrf.new$n.edges)
-{
+for (i in 1:mrf.new$n.edges){
   mrf.new$edge.par[[i]][1,1,1] <- 2
   mrf.new$edge.par[[i]][1,2,1] <- 3
   mrf.new$edge.par[[i]][2,1,1] <- 4
 }
+
 mrf.new <- train.mrf(mrf.new, mc.samples)
 mrf.new$node.pot <- mrf.new$node.pot / rowSums(mrf.new$node.pot)
 mrf.new$edge.pot[[1]] <- mrf.new$edge.pot[[1]] / rowSums(mrf.new$edge.pot[[1]])
