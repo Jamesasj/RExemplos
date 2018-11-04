@@ -11,6 +11,9 @@ dados.bigram <- dados.full %>% unnest_tokens(tregram, text, token = "ngrams", n 
 dados.bigram.summ <- dados.bigram %>% separate(tregram, c("word1","word2","word3"), sep = " ")
 
 modelo <- naiveBayes(as.factor(word3) ~ ., data = dados.bigram.summ)
+save(modelo, file = "modelo.RData")
+
+load(file = "modelo.RData")
 
 infe <- data.frame(word1 = "Peito", word2 = "a")
 
